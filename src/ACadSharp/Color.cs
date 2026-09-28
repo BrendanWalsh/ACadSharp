@@ -490,21 +490,25 @@ namespace ACadSharp
 		/// <returns>Approximate RGB color.</returns>
 		public static byte ApproxIndex(byte r, byte g, byte b)
 		{
-			var prevDist = -1;
+			int prevDist = int.MaxValue;
+			byte closest = 0;
 			for (var i = 0; i < _indexRgb.Length; i++)
 			{
-				var dist = (r - _indexRgb[i][0]) + (g - _indexRgb[i][1]) + (b - _indexRgb[i][2]);
+				int dr = r - _indexRgb[i][0];
+				int dg = g - _indexRgb[i][1];
+				int db = b - _indexRgb[i][2];
+				int dist = dr * dr + dg * dg + db * db;
 				if (dist == 0)
 					return (byte)i;
 
 				if (dist < prevDist)
 				{
 					prevDist = dist;
-					return (byte)i;
+					closest = (byte)i;
 				}
 			}
 
-			return 0;
+			return closest;
 		}
 
 		/// <summary>

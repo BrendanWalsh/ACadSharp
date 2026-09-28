@@ -2,6 +2,7 @@ using ACadSharp.Entities;
 using ACadSharp.Exceptions;
 using ACadSharp.IO;
 using ACadSharp.Tables;
+using ACadSharp.XData;
 using CSMath;
 using System;
 using System.IO;
@@ -74,8 +75,9 @@ public class DxfInsertSequenceTests
 			document.BlockRecords.Add(container);
 		}
 		Insert insert = new Insert(symbol);
-		insert.Attributes.Add(new AttributeEntity { Tag = "FIRST", Value = "alpha", Height = 1 });
+		insert.Attributes.Add(new AttributeEntity { Tag = "FIRST", Value = "alpha", Height = 1, IsLocked = true });
 		insert.Attributes.Add(new AttributeEntity { Tag = "SECOND", Value = "beta", Height = 1 });
+		insert.ExtendedData.Add(new AppId("SEQUENCE_TEST"), new[] { new ExtendedDataString("insert-id") });
 		container.Entities.Add(insert);
 		container.Entities.Add(new Line(XYZ.Zero, XYZ.AxisX));
 
@@ -112,6 +114,10 @@ public class DxfInsertSequenceTests
 		Assert.Equal(expected.Attributes.Select(a => a.Handle), actual.Attributes.Select(a => a.Handle));
 		Assert.Equal(new[] { "FIRST", "SECOND" }, actual.Attributes.Select(a => a.Tag));
 		Assert.Equal(new[] { "alpha", "beta" }, actual.Attributes.Select(a => a.Value));
+		Assert.Equal(new[] { true, false }, actual.Attributes.Select(a => a.IsLocked));
+		var data = Assert.Single(actual.ExtendedData);
+		Assert.Equal("SEQUENCE_TEST", data.Key.Name);
+		Assert.Equal("insert-id", Assert.IsType<ExtendedDataString>(Assert.Single(data.Value.Records)).Value);
 		Assert.All(actual.Attributes, attribute => Assert.Same(actual, attribute.Owner));
 		Assert.Equal(expected.Attributes.Seqend.Handle, actual.Attributes.Seqend.Handle);
 		Assert.Same(actual, actual.Attributes.Seqend.Owner);

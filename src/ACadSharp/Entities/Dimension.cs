@@ -171,13 +171,13 @@ public abstract class Dimension : Entity, IOrientable
 	/// Valid values range from 0.25 to 4.00
 	/// </value>
 	[DxfCodeValue(DxfReferenceType.Optional, 41)]
-	public double LineSpacingFactor { get; set; }
+	public double LineSpacingFactor { get; set; } = 1.0;
 
 	/// <summary>
 	/// Dimension text line-spacing style.
 	/// </summary>
 	[DxfCodeValue(DxfReferenceType.Optional, 72)]
-	public LineSpacingStyleType LineSpacingStyle { get; set; }
+	public LineSpacingStyleType LineSpacingStyle { get; set; } = LineSpacingStyleType.AtLeast;
 
 	/// <summary>
 	/// Actual measurement.

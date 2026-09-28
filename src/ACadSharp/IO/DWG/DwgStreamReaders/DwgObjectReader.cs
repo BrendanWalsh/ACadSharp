@@ -6428,6 +6428,8 @@ namespace ACadSharp.IO.DWG
 
 			byte flags = this._objectReader.ReadByte();
 			dimension.IsTextUserDefinedLocation = (flags & 0b01) == 0;
+			dimension.Flags = (dimension.Flags & ~DimensionType.BlockReference)
+				| ((flags & 0b10) != 0 ? DimensionType.BlockReference : 0);
 
 			//User text TV 1
 			dimension.Text = this._textReader.ReadVariableText();

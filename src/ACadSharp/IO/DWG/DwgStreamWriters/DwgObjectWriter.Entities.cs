@@ -196,7 +196,7 @@ internal partial class DwgObjectWriter : DwgSectionIO
 
 		byte flags = 0;
 		flags |= dimension.IsTextUserDefinedLocation ? (byte)0b00 : (byte)0b01;
-		//flags |= 8;
+		flags |= dimension.Flags.HasFlag(DimensionType.BlockReference) ? (byte)0b10 : (byte)0;
 
 		this._writer.WriteByte(flags);
 

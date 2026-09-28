@@ -47,7 +47,7 @@ internal abstract partial class DxfSectionWriterBase
 				break;
 			case Insert insert:
 				this.writeInsert(insert);
-				break;
+				return;
 			case Leader leader:
 				this.writeLeader(leader);
 				break;
@@ -96,7 +96,7 @@ internal abstract partial class DxfSectionWriterBase
 					default:
 						throw new NotImplementedException($"Polyline not implemented {polyline.GetType().FullName}");
 				}
-				break;
+				return;
 			case RasterImage rasterImage:
 				this.writeCadImage(rasterImage);
 				break;
@@ -180,6 +180,10 @@ internal abstract partial class DxfSectionWriterBase
 
 	private void writeAttributeBase(AttributeBase att)
 	{
+		if (this.Version >= ACadVersion.AC1024)
+		{
+			this._writer.Write(280, att.Version);
+		}
 		this._writer.Write(2, att.Tag);
 
 		this._writer.Write(70, (short)att.Flags);
@@ -188,6 +192,10 @@ internal abstract partial class DxfSectionWriterBase
 		if (att.VerticalAlignment != 0)
 		{
 			this._writer.Write(74, (short)att.VerticalAlignment);
+		}
+		if (this.Version >= ACadVersion.AC1021)
+		{
+			this._writer.Write(280, att.IsLocked ? (byte)1 : (byte)0);
 		}
 
 		if (this.Version > ACadVersion.AC1027 && att.AttributeType != AttributeType.SingleLine)
@@ -513,7 +521,24 @@ internal abstract partial class DxfSectionWriterBase
 			this._writer.Write(10, spoint);
 		}
 
-		//TODO: Implement HatchGradientPattern
+		HatchGradientPattern gradient = hatch.GradientColor;
+		if (this.Version >= ACadVersion.AC1018 && (gradient.Enabled || gradient.Colors.Count > 0))
+		{
+			this._writer.Write(450, gradient.Enabled ? 1 : 0);
+			this._writer.Write(451, gradient.Reserved);
+			this._writer.Write(460, gradient.Angle);
+			this._writer.Write(461, gradient.Shift);
+			this._writer.Write(452, gradient.IsSingleColorGradient ? 1 : 0);
+			this._writer.Write(462, gradient.ColorTint);
+			this._writer.Write(453, gradient.Colors.Count);
+			foreach (GradientColor color in gradient.Colors)
+			{
+				this._writer.Write(463, color.Value);
+				this._writer.Write(63, color.Color.GetApproxIndex());
+				this._writer.Write(421, (color.Color.R << 16) | (color.Color.G << 8) | color.Color.B);
+			}
+			this._writer.Write(470, gradient.Name);
+		}
 	}
 
 	private void writeHatchBoundaryAngles(double startAngle, double endAngle)
@@ -669,11 +694,10 @@ internal abstract partial class DxfSectionWriterBase
 
 		this._writer.Write(210, insert.Normal, map);
 
+		this.writeExtendedData(insert.ExtendedData);
 		if (insert.HasAttributes)
 		{
 			this._writer.Write(66, 1);
-
-			//WARNING: Write extended data before attributes
 
 			foreach (var att in insert.Attributes)
 			{
@@ -1181,6 +1205,7 @@ internal abstract partial class DxfSectionWriterBase
 
 		this._writer.Write(210, polyline.Normal, map);
 
+		this.writeExtendedData(polyline.ExtendedData);
 		if (polyline.Vertices.Any())
 		{
 			foreach (T v in polyline.Vertices)

@@ -17,11 +17,17 @@ their attributes and SEQEND as children even when owner handles name the block
 or are absent. This avoids treating a sequence terminator as a standalone DWG
 entity. A missing required terminator is reported as a DXF error.
 
+The preservation fixes also retain hatch styles, seeds, pixel sizes and
+gradient RGB values; attribute lock flags; valid text/dimension spacing
+defaults; dimension block-reference flags; and parent XDATA before INSERT or
+POLYLINE child sequences. RGB-to-index conversion selects the closest palette
+entry instead of returning the first partial match.
+
 With the submodules initialized, a .NET 10 SDK and .NET 8 runtime can run the
 focused regressions:
 
 ```console
-dotnet test src/ACadSharp.Tests/ACadSharp.Tests.csproj -p:TargetFrameworks=net8.0 --filter "FullyQualifiedName~DxfMultiLeaderColumnTests|FullyQualifiedName~DxfInsertSequenceTests"
+dotnet test src/ACadSharp.Tests/ACadSharp.Tests.csproj -p:TargetFrameworks=net8.0 --filter "FullyQualifiedName~DxfMultiLeaderColumnTests|FullyQualifiedName~DxfInsertSequenceTests|FullyQualifiedName~DxfPreservationTests"
 ```
 
 Check the [documentation](https://domcr.github.io/ACadSharp/index.html) for specific information about the library.

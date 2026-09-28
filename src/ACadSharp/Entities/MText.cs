@@ -113,7 +113,7 @@ public partial class MText : Entity, IText
 	/// Mtext line spacing style.
 	/// </summary>
 	[DxfCodeValue(73)]
-	public LineSpacingStyleType LineSpacingStyle { get; set; }
+	public LineSpacingStyleType LineSpacingStyle { get; set; } = LineSpacingStyleType.AtLeast;
 
 	/// <inheritdoc/>
 	[DxfCodeValue(210, 220, 230)]

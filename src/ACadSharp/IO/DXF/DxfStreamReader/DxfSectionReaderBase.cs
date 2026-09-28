@@ -399,6 +399,21 @@ internal abstract class DxfSectionReaderBase
 
 		switch (this._reader.Code)
 		{
+			case 2:
+				((AttributeBase)tmp.CadObject).Tag = this._reader.ValueAsString;
+				tmp.HasReadTag = true;
+				return true;
+			case 280:
+				AttributeBase attribute = (AttributeBase)tmp.CadObject;
+				if (tmp.HasReadTag)
+				{
+					attribute.IsLocked = this._reader.ValueAsBool;
+				}
+				else
+				{
+					attribute.Version = (byte)this._reader.ValueAsInt;
+				}
+				return true;
 			case 44:
 			case 46:
 				return true;
@@ -892,21 +907,13 @@ internal abstract class DxfSectionReaderBase
 		CadHatchTemplate tmp = template as CadHatchTemplate;
 		Hatch hatch = tmp.CadObject;
 
-		XY seedPoint = new XY();
-
 		switch (this._reader.Code)
 		{
 			case 2:
 				hatch.Pattern.Name = this._reader.ValueAsString;
 				return true;
 			case 10:
-				seedPoint.X = this._reader.ValueAsDouble;
-				hatch.SeedPoints.Add(seedPoint);
-				return true;
 			case 20:
-				seedPoint = hatch.SeedPoints.LastOrDefault();
-				seedPoint.Y = this._reader.ValueAsDouble;
-				hatch.SeedPoints[hatch.SeedPoints.Count - 1] = seedPoint;
 				return true;
 			case 30:
 				hatch.Elevation = this._reader.ValueAsDouble;
@@ -919,6 +926,7 @@ internal abstract class DxfSectionReaderBase
 				return true;
 			//Information about the hatch pattern
 			case 75:
+				hatch.Style = (HatchStyleType)this._reader.ValueAsShort;
 				return true;
 			//Number of pattern definition lines
 			case 78:
@@ -932,6 +940,18 @@ internal abstract class DxfSectionReaderBase
 				return true;
 			//Number of seed points
 			case 98:
+				int seedCount = this._reader.ValueAsInt;
+				for (int i = 0; i < seedCount; i++)
+				{
+					this._reader.ReadNext();
+					if (this._reader.Code != 10)
+						throw new DxfException("Expected hatch seed X coordinate", this._reader.Position);
+					double x = this._reader.ValueAsDouble;
+					this._reader.ReadNext();
+					if (this._reader.Code != 20)
+						throw new DxfException("Expected hatch seed Y coordinate", this._reader.Position);
+					hatch.SeedPoints.Add(new XY(x, this._reader.ValueAsDouble));
+				}
 				return true;
 			case 450:
 				hatch.GradientColor.Enabled = this._reader.ValueAsBool;
@@ -970,9 +990,8 @@ internal abstract class DxfSectionReaderBase
 				GradientColor colorByRgb = hatch.GradientColor.Colors.LastOrDefault();
 				if (colorByRgb != null)
 				{
-					//TODO: Hatch assign color by true color
-					//TODO: Is always duplicated by 63, is it needed??
-					//colorByRgb.Color = new Color(this._reader.LastValueAsShort);
+					int rgb = this._reader.ValueAsInt;
+					colorByRgb.Color = new Color((byte)(rgb >> 16), (byte)(rgb >> 8), (byte)rgb);
 				}
 				return true;
 			case 470:
@@ -1975,7 +1994,7 @@ internal abstract class DxfSectionReaderBase
 						break;
 					default:
 						end = true;
-						break;
+						continue;
 				}
 				this._reader.ReadNext();
 			}
