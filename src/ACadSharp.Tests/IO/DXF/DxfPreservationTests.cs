@@ -1,4 +1,5 @@
 using ACadSharp.Entities;
+using ACadSharp.Extensions;
 using ACadSharp.IO;
 using ACadSharp.Tables;
 using CSMath;
@@ -100,7 +101,7 @@ public class DxfPreservationTests
 		DimensionLinear dimension = new DimensionLinear {
 			FirstPoint = XYZ.Zero, SecondPoint = new XYZ(5, 0, 0), DefinitionPoint = new XYZ(0, 2, 0),
 			Block = block, Flags = DimensionType.Linear | DimensionType.BlockReference,
-			IsTextUserDefinedLocation = userPosition
+			IsTextUserDefinedLocation = userPosition, UnknownFlag = true, FlipArrow1 = true
 		};
 		document.Entities.Add(dimension);
 		DimensionLinear result = Assert.IsType<DimensionLinear>(Assert.Single(roundTrip(document, true).Entities));
@@ -108,6 +109,59 @@ public class DxfPreservationTests
 		Assert.Equal(userPosition, result.IsTextUserDefinedLocation);
 		Assert.Equal(LineSpacingStyleType.AtLeast, result.LineSpacingStyle);
 		Assert.Equal(1.0, result.LineSpacingFactor);
+		Assert.True(result.UnknownFlag);
+		Assert.True(result.FlipArrow1);
+		DimensionLinear dxf = Assert.IsType<DimensionLinear>(Assert.Single(roundTrip(roundTrip(document, true), false).Entities));
+		Assert.True(dxf.UnknownFlag);
+		Assert.True(dxf.FlipArrow1);
+		Assert.Equal(5.0, dxf.Measurement);
+	}
+
+	[Theory]
+	[InlineData(true)]
+	[InlineData(false)]
+	public void ByBlockColorKeepsIndependentTransparency(bool byLayer)
+	{
+		CadDocument document = new CadDocument(ACadVersion.AC1032);
+		MText text = new MText { Value = "ByBlock", Color = Color.ByBlock,
+			Transparency = byLayer ? Transparency.ByLayer : Transparency.Opaque };
+		document.Entities.Add(text);
+		MText result = Assert.IsType<MText>(Assert.Single(roundTrip(document, true).Entities));
+		Assert.Equal(text.Transparency, result.Transparency);
+	}
+
+	[Theory]
+	[InlineData("drawing|S-TEXT", true)]
+	[InlineData("drawing|nested|S-TEXT", true)]
+	[InlineData("|S-TEXT", false)]
+	[InlineData("drawing||S-TEXT", false)]
+	[InlineData("drawing|bad/name", false)]
+	[InlineData("ordinary", true)]
+	public void XrefTableNamesValidateTheirComponents(string name, bool valid)
+	{
+		Assert.Equal(valid, new Layer(name).HasValidDxfName());
+	}
+
+	[Fact]
+	public void XrefLayersSurviveDxfReadback()
+	{
+		CadDocument document = new CadDocument(ACadVersion.AC1032);
+		string name = "drawing|nested|S-TEXT";
+		document.Layers.Add(new Layer(name));
+		Assert.True(roundTrip(roundTrip(document, true), false).Layers.Contains(name));
+	}
+
+	[Theory]
+	[InlineData((short)-1)]
+	[InlineData((short)0)]
+	[InlineData((short)3)]
+	public void DxfViewportActiveStatusIsRead(short status)
+	{
+		CadDocument document = new CadDocument(ACadVersion.AC1032);
+		Viewport viewport = new Viewport { ActiveStatus = status };
+		document.PaperSpace.Entities.Add(viewport);
+		Viewport result = roundTrip(document, false).GetCadObject<Viewport>(viewport.Handle);
+		Assert.Equal(status, result.ActiveStatus);
 	}
 
 	[Theory]

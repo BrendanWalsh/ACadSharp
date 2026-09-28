@@ -111,7 +111,6 @@ namespace ACadSharp.IO.DWG
 			else
 			{
 				color = Color.ByBlock;
-				transparency = Transparency.Opaque;
 			}
 
 			return color;

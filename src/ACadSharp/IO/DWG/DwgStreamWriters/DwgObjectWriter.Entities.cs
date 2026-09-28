@@ -233,7 +233,7 @@ internal partial class DwgObjectWriter : DwgSectionIO
 		if (this.R2007Plus)
 		{
 			//Unknown B 73
-			this._writer.WriteBit(value: false);
+			this._writer.WriteBit(dimension.UnknownFlag);
 			//Flip arrow1 B 74
 			this._writer.WriteBit(dimension.FlipArrow1);
 			//Flip arrow2 B 75

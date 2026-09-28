@@ -128,6 +128,7 @@ public class DxfInsertSequenceTests
 		string[] lines = Encoding.UTF8.GetString(dxf).Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
 		StringBuilder result = new StringBuilder();
 		string entity = string.Empty;
+		bool extendedData = false;
 		for (int i = 0; i + 1 < lines.Length; i += 2)
 		{
 			int code = int.Parse(lines[i]);
@@ -135,6 +136,14 @@ public class DxfInsertSequenceTests
 			if (code == 0)
 			{
 				entity = value;
+				extendedData = false;
+			}
+			if (entity == "INSERT")
+			{
+				if (code == 1001)
+					extendedData = true;
+				if (extendedData)
+					Assert.True(code >= 1000, "INSERT properties must precede its XDATA.");
 			}
 			if (code == 330 && (entity == "ATTRIB" || entity == "SEQEND"))
 			{

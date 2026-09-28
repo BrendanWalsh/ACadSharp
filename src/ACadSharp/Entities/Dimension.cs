@@ -93,6 +93,12 @@ public abstract class Dimension : Entity, IOrientable
 	public bool FlipArrow2 { get; set; }
 
 	/// <summary>
+	/// Undocumented dimension flag stored in DXF group 73 and the R2007+ DWG dimension record.
+	/// </summary>
+	[DxfCodeValue(73)]
+	public bool UnknownFlag { get; set; }
+
+	/// <summary>
 	/// Gets a value indicating whether a style override is present in the extended data.
 	/// </summary>
 	/// <remarks>Use this property to determine if the object contains custom style information that overrides

@@ -23,6 +23,13 @@ defaults; dimension block-reference flags; and parent XDATA before INSERT or
 POLYLINE child sequences. RGB-to-index conversion selects the closest palette
 entry instead of returning the first partial match.
 
+DXF readback also retains XREF-qualified table names, dimension measurements
+and flags, and explicitly read viewport activation status. INSERT attribute
+flags precede parent XDATA, and ByBlock color no longer forces opaque
+transparency when reading DWG. Optional default alignment points, line-spacing
+factors and non-derived zero hatch pixel sizes are not invented during export.
+DWG viewport activation-order reconstruction is not established by these fixes.
+
 With the submodules initialized, a .NET 10 SDK and .NET 8 runtime can run the
 focused regressions:
 

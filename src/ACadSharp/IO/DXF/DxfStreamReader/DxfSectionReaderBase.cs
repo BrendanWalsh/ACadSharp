@@ -844,9 +844,6 @@ internal abstract class DxfSectionReaderBase
 			case 42:
 				return true;
 			//Undocumented codes
-			case 73:
-			case 74:
-			case 75:
 			case 90:
 			case 361:
 				return true;
@@ -1778,7 +1775,6 @@ internal abstract class DxfSectionReaderBase
 		{
 			//Undocumented
 			case 67:
-			case 68:
 				return true;
 			case 69:
 				tmp.ViewportId = this._reader.ValueAsShort;

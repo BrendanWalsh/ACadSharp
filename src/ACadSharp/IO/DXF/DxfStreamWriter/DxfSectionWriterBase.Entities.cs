@@ -314,7 +314,14 @@ internal abstract partial class DxfSectionWriterBase
 		this._writer.Write(70, (short)dim.Flags, map);
 		this._writer.Write(71, (short)dim.AttachmentPoint, map);
 		this._writer.Write(72, (short)dim.LineSpacingStyle, map);
-		this._writer.Write(41, dim.LineSpacingFactor, map);
+		this._writer.WriteIfNotDefault(41, dim.LineSpacingFactor, 1.0, map);
+		this._writer.Write(42, dim.Measurement, map);
+		if (this.Version >= ACadVersion.AC1021)
+		{
+			this._writer.Write(73, dim.UnknownFlag, map);
+			this._writer.Write(74, dim.FlipArrow1, map);
+			this._writer.Write(75, dim.FlipArrow2, map);
+		}
 
 		if (!string.IsNullOrEmpty(dim.Text))
 		{
@@ -510,7 +517,7 @@ internal abstract partial class DxfSectionWriterBase
 
 		this.writeHatchPattern(hatch, hatch.Pattern);
 
-		if (!hatch.IsSolid || hatch.Paths.Any(p => p.Flags.HasFlag(BoundaryPathFlags.Derived)) || hatch.PixelSize != 0)
+		if (hatch.Paths.Any(p => p.Flags.HasFlag(BoundaryPathFlags.Derived)) || hatch.PixelSize != 0)
 		{
 			this._writer.Write(47, hatch.PixelSize, map);
 		}
@@ -694,10 +701,13 @@ internal abstract partial class DxfSectionWriterBase
 
 		this._writer.Write(210, insert.Normal, map);
 
-		this.writeExtendedData(insert.ExtendedData);
 		if (insert.HasAttributes)
 		{
 			this._writer.Write(66, 1);
+		}
+		this.writeExtendedData(insert.ExtendedData);
+		if (insert.HasAttributes)
+		{
 
 			foreach (var att in insert.Attributes)
 			{
@@ -1364,7 +1374,11 @@ internal abstract partial class DxfSectionWriterBase
 
 		this._writer.Write(7, text.Style.Name);
 
-		this._writer.Write(11, text.AlignmentPoint, map);
+		if (text.AlignmentPoint != XYZ.Zero || text.HorizontalAlignment != 0
+			|| text.VerticalAlignment != TextVerticalAlignmentType.Baseline)
+		{
+			this._writer.Write(11, text.AlignmentPoint, map);
+		}
 
 		this._writer.Write(210, text.Normal, map);
 

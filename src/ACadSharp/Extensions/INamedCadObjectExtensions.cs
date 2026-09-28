@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using ACadSharp.Tables;
+using System.Linq;
 
 namespace ACadSharp.Extensions;
 
@@ -28,11 +29,10 @@ public static class INamedCadObjectExtensions
 			return false;
 		}
 
-		if (namedCadObject.Name.IndexOf(InvalidCharacters[0]) > 0)
-		{
-			return false;
-		}
-
-		return namedCadObject.Name.IndexOfAny(InvalidCharacters.Skip(1).ToArray()) == -1;
+		string[] names = namedCadObject is TableEntry
+			? namedCadObject.Name.Split('|') : new[] { namedCadObject.Name };
+		return names.All(name => !string.IsNullOrEmpty(name)
+			&& name.IndexOf(InvalidCharacters[0]) <= 0
+			&& name.IndexOfAny(InvalidCharacters.Skip(1).ToArray()) == -1);
 	}
 }

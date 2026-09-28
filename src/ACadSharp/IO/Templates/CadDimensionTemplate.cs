@@ -95,6 +95,9 @@ internal class CadDimensionTemplate : CadEntityTemplate
 		dimension.AttachmentPoint = source.AttachmentPoint;
 		dimension.LineSpacingStyle = source.LineSpacingStyle;
 		dimension.LineSpacingFactor = source.LineSpacingFactor;
+		dimension.UnknownFlag = source.UnknownFlag;
+		dimension.FlipArrow1 = source.FlipArrow1;
+		dimension.FlipArrow2 = source.FlipArrow2;
 		dimension.Text = source.Text;
 		dimension.TextRotation = source.TextRotation;
 		dimension.HorizontalDirection = source.HorizontalDirection;

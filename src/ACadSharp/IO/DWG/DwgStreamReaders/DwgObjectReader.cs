@@ -6468,7 +6468,7 @@ namespace ACadSharp.IO.DWG
 			if (this.R2007Plus)
 			{
 				//Unknown B 73
-				this._objectReader.ReadBit();
+				dimension.UnknownFlag = this._objectReader.ReadBit();
 				//Flip arrow1 B 74
 				dimension.FlipArrow1 = this._objectReader.ReadBit();
 				//Flip arrow2 B 75
