@@ -297,6 +297,7 @@ internal class DxfObjectsSectionWriter : DxfSectionWriterBase
 		this._writer.Write(76, (short)0, map);
 
 		this._writer.WriteHandle(330, layout.AssociatedBlock, map);
+		this._writer.WriteHandle(331, layout.LastActiveViewport, map);
 	}
 
 	protected void writeMLineStyle(MLineStyle style)

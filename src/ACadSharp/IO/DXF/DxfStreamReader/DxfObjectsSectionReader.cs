@@ -1804,7 +1804,7 @@ internal class DxfObjectsSectionReader : DxfSectionReaderBase
 				tmp.PaperSpaceBlockHandle = this._reader.ValueAsHandle;
 				return true;
 			case 331:
-				tmp.LasActiveViewportHandle = (this._reader.ValueAsHandle);
+				tmp.ActiveViewportHandle = this._reader.ValueAsHandle;
 				return true;
 			default:
 				if (!this.tryAssignCurrentValue(template.CadObject, map.SubClasses[DxfSubclassMarker.Layout]))

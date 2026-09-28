@@ -152,6 +152,25 @@ public class DxfPreservationTests
 	}
 
 	[Theory]
+	[InlineData(false)]
+	[InlineData(true)]
+	public void LayoutLastActiveViewportSurvivesDxfAndDwg(bool binary)
+	{
+		CadDocument document = new CadDocument(ACadVersion.AC1032);
+		document.PaperSpace.Entities.Add(new Viewport());
+		Viewport active = new Viewport();
+		document.PaperSpace.Entities.Add(active);
+		document.PaperSpace.Layout.LastActiveViewport = active;
+
+		CadDocument dxf = roundTrip(document, false, binary);
+		CadDocument dwg = roundTrip(dxf, true);
+		foreach (CadDocument result in new[] { dxf, dwg, roundTrip(dwg, false, binary) })
+		{
+			Assert.Same(result.GetCadObject<Viewport>(active.Handle), result.PaperSpace.Layout.LastActiveViewport);
+		}
+	}
+
+	[Theory]
 	[InlineData((short)-1)]
 	[InlineData((short)0)]
 	[InlineData((short)3)]
