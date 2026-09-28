@@ -1386,6 +1386,9 @@ internal abstract class DxfSectionReaderBase
 		{
 			switch (this._reader.Code)
 			{
+				case 144:
+					contextData.ColumnSizes.Add(this._reader.ValueAsDouble);
+					break;
 				case 301 when this._reader.ValueAsString.Equals("}"):
 					end = true;
 					break;

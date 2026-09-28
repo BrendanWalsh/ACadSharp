@@ -4,6 +4,21 @@
 
 C# library to read/write cad files like dxf/dwg.
 
+### dwg-workbench fork
+
+The `dwg-workbench/multileader-column-heights` branch is based on
+`3a1c66b9932f9e2dbfbbf3f03660c97d52e49b02` (3.8.0). It preserves repeated
+MULTILEADER context group-code 144 values when reading and writing DXF,
+including zero heights and their original order. This is a targeted field
+preservation fix, not a claim of complete drawing fidelity.
+
+With the submodules initialized, a .NET 10 SDK and .NET 8 runtime can run the
+focused regressions:
+
+```console
+dotnet test src/ACadSharp.Tests/ACadSharp.Tests.csproj -p:TargetFrameworks=net8.0 --filter FullyQualifiedName~DxfMultiLeaderColumnTests
+```
+
 Check the [documentation](https://domcr.github.io/ACadSharp/index.html) for specific information about the library.
 
 ### Features

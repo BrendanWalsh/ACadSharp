@@ -1050,6 +1050,10 @@ internal abstract partial class DxfSectionWriterBase
 		this._writer.Write(142, contextData.ColumnWidth);
 		this._writer.Write(143, contextData.ColumnGutter);
 		this._writer.Write(294, contextData.ColumnFlowReversed);
+		foreach (double height in contextData.ColumnSizes)
+		{
+			this._writer.Write(144, height);
+		}
 		this._writer.Write(295, contextData.WordBreak);
 
 		this._writer.Write(296, contextData.HasContentsBlock);
