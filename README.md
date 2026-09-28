@@ -12,11 +12,16 @@ MULTILEADER context group-code 144 values when reading and writing DXF,
 including zero heights and their original order. This is a targeted field
 preservation fix, not a claim of complete drawing fidelity.
 
+The DXF reader also consumes INSERT attribute sequences structurally, retaining
+their attributes and SEQEND as children even when owner handles name the block
+or are absent. This avoids treating a sequence terminator as a standalone DWG
+entity. A missing required terminator is reported as a DXF error.
+
 With the submodules initialized, a .NET 10 SDK and .NET 8 runtime can run the
 focused regressions:
 
 ```console
-dotnet test src/ACadSharp.Tests/ACadSharp.Tests.csproj -p:TargetFrameworks=net8.0 --filter FullyQualifiedName~DxfMultiLeaderColumnTests
+dotnet test src/ACadSharp.Tests/ACadSharp.Tests.csproj -p:TargetFrameworks=net8.0 --filter "FullyQualifiedName~DxfMultiLeaderColumnTests|FullyQualifiedName~DxfInsertSequenceTests"
 ```
 
 Check the [documentation](https://domcr.github.io/ACadSharp/index.html) for specific information about the library.

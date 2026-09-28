@@ -1,4 +1,5 @@
 ﻿using ACadSharp.Entities;
+using ACadSharp.Exceptions;
 using ACadSharp.IO.Templates;
 using ACadSharp.Objects;
 using ACadSharp.Tables;
@@ -189,7 +190,7 @@ internal abstract class DxfSectionReaderBase
 			case DxfFileToken.EntityHatch:
 				return this.readEntityCodes<Hatch>(new CadHatchTemplate(), this.readHatch);
 			case DxfFileToken.EntityInsert:
-				return this.readEntityCodes<Insert>(new CadInsertTemplate(), this.readInsert);
+				return this.readInsert();
 			case DxfFileToken.EntityMText:
 				return this.readEntityCodes<MText>(new CadTextEntityTemplate(new MText()), this.readTextEntity);
 			case DxfFileToken.EntityMLine:
@@ -982,6 +983,34 @@ internal abstract class DxfSectionReaderBase
 		}
 	}
 
+	private CadEntityTemplate readInsert()
+	{
+		CadInsertTemplate template = new CadInsertTemplate();
+		this.readEntityCodes<Insert>(template, this.readInsert);
+		if (!template.HasAtts)
+		{
+			return template;
+		}
+
+		Insert insert = (Insert)template.CadObject;
+		while (this._reader.Code == 0 && this._reader.ValueAsString == DxfFileToken.EntityAttribute)
+		{
+			CadEntityTemplate attribute = this.readEntity();
+			this._builder.AddTemplate(attribute);
+			insert.Attributes.Add((AttributeEntity)attribute.CadObject);
+		}
+
+		if (this._reader.Code != 0 || this._reader.ValueAsString != DxfFileToken.EndSequence)
+		{
+			throw new DxfException("INSERT attribute sequence is missing its SEQEND", this._reader.Position);
+		}
+
+		CadEntityTemplate seqend = this.readEntity();
+		this._builder.AddTemplate(seqend);
+		insert.Attributes.Seqend = (Seqend)seqend.CadObject;
+		return template;
+	}
+
 	private bool readInsert(CadEntityTemplate template, DxfMap map, string subclass = null)
 	{
 		CadInsertTemplate tmp = template as CadInsertTemplate;
@@ -997,6 +1026,7 @@ internal abstract class DxfSectionReaderBase
 				//AcDbMInsertBlock
 				return true;
 			case 66:
+				tmp.HasAtts = this._reader.ValueAsBool;
 				return true;
 			default:
 				return this.tryAssignCurrentValue(template.CadObject, map.SubClasses[DxfSubclassMarker.Insert]);
