@@ -1,6 +1,7 @@
 ﻿using ACadSharp.Entities;
 using ACadSharp.IO.Templates;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace ACadSharp.IO.DWG;
 
@@ -54,5 +55,33 @@ internal class DwgDocumentBuilder : CadDocumentBuilder
 		base.BuildDocument();
 
 		this.HeaderHandles.UpdateHeader(this.DocumentToBuild.Header, this);
+		this.restoreViewportActivity();
+	}
+
+	private void restoreViewportActivity()
+	{
+		// DWG stores layout membership, the last active viewport and off flags,
+		// not DXF group 68. Reconstruct a consistent activity stack after linking.
+		foreach (var layout in this.DocumentToBuild.Layouts.Where(layout => layout.IsPaperSpace))
+		{
+			int stack = 0;
+			int modelViewports = 0;
+			foreach (Viewport viewport in layout.Viewports.OrderBy(viewport => viewport != layout.LastActiveViewport))
+			{
+				if (viewport.Status.HasFlag(ViewportStatusFlags.ViewportOff))
+				{
+					viewport.ActiveStatus = 0;
+				}
+				else if (viewport != layout.PaperViewport
+					&& ++modelViewports > this.DocumentToBuild.Header.MaxViewportCount)
+				{
+					viewport.ActiveStatus = -1;
+				}
+				else
+				{
+					viewport.ActiveStatus = checked((short)++stack);
+				}
+			}
+		}
 	}
 }

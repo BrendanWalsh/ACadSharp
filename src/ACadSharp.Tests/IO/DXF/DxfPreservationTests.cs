@@ -154,6 +154,44 @@ public class DxfPreservationTests
 	[Theory]
 	[InlineData(false)]
 	[InlineData(true)]
+	public void DwgViewportActivityUsesLayoutStateNotViewportIds(bool selectLast)
+	{
+		CadDocument document = new CadDocument(ACadVersion.AC1032);
+		Viewport paper = Assert.Single(document.PaperSpace.Layout.Viewports);
+		Viewport first = new Viewport();
+		Viewport last = new Viewport();
+		Viewport off = new Viewport { Status = ViewportStatusFlags.ViewportOff };
+		document.PaperSpace.Entities.Add(first);
+		document.PaperSpace.Entities.Add(last);
+		document.PaperSpace.Entities.Add(off);
+		document.PaperSpace.Layout.LastActiveViewport = selectLast ? last : paper;
+
+		CadDocument result = roundTrip(document, true);
+		Assert.Equal(selectLast ? 2 : 1, result.GetCadObject<Viewport>(paper.Handle).ActiveStatus);
+		Assert.Equal(selectLast ? 3 : 2, result.GetCadObject<Viewport>(first.Handle).ActiveStatus);
+		Assert.Equal(selectLast ? 1 : 3, result.GetCadObject<Viewport>(last.Handle).ActiveStatus);
+		Assert.Equal(0, result.GetCadObject<Viewport>(off.Handle).ActiveStatus);
+	}
+
+	[Fact]
+	public void DwgViewportActivityRespectsMaximumWithoutCountingPaperImage()
+	{
+		CadDocument document = new CadDocument(ACadVersion.AC1032);
+		Assert.Single(document.PaperSpace.Layout.Viewports);
+		document.Header.MaxViewportCount = 2;
+		for (int i = 0; i < 3; i++)
+		{
+			document.PaperSpace.Entities.Add(new Viewport());
+		}
+		document.PaperSpace.Layout.LastActiveViewport = document.PaperSpace.Layout.PaperViewport;
+		CadDocument result = roundTrip(document, true);
+		Assert.Equal(new short[] { 1, 2, 3, -1 },
+			result.PaperSpace.Layout.Viewports.Select(viewport => viewport.ActiveStatus));
+	}
+
+	[Theory]
+	[InlineData(false)]
+	[InlineData(true)]
 	public void LayoutLastActiveViewportSurvivesDxfAndDwg(bool binary)
 	{
 		CadDocument document = new CadDocument(ACadVersion.AC1032);

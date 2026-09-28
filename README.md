@@ -29,7 +29,11 @@ last-active-viewport reference. INSERT attribute
 flags precede parent XDATA, and ByBlock color no longer forces opaque
 transparency when reading DWG. Optional default alignment points, line-spacing
 factors and non-derived zero hatch pixel sizes are not invented during export.
-DWG viewport activation-order reconstruction is not established by these fixes.
+DWG viewport activity is reconstructed after linking layouts: the saved
+last-active viewport comes first, other enabled viewports follow in layout
+order, off viewports stay off, and the active model-viewport limit is respected.
+This creates a consistent DXF activity stack without equating stack position
+with viewport ID. It does not reproduce an unsaved interactive CAD session.
 
 With the submodules initialized, a .NET 10 SDK and .NET 8 runtime can run the
 focused regressions:
